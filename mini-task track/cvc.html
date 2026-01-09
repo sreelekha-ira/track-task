@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRASKK - AI TRACKING Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-collapsed-width: 60px;
+            --header-height: 60px;
+            --primary-color: #050816;
+            --secondary-color: #0f172a;
+            --card-bg: #020617;
+            --accent-color: #6366f1;
+            --accent-light: #a855f7;
+            --accent-soft: #e0e7ff;
+            --border-color: #1f2937;
+            --text-color: #f9fafb;
+            --text-light: #9ca3af;
+            --success-color: #22c55e;
+            --warning-color: #f97316;
+            --danger-color: #ef4444;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            overflow: hidden;
+            position: relative;
+            border-right: 1px solid var(--border-color);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo span {
+            display: none;
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 18px;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-sidebar:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            padding: 8px 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            margin: 4px 12px;
+            white-space: nowrap;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-item.active {
+            background-color: rgba(99, 102, 241, 0.2);
+            color: var(--accent-color);
+        }
+
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-item span {
+            flex: 1;
+        }
+
+        .sidebar.collapsed .sidebar-item span {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-section h3 {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-item {
+            justify-content: center;
+            padding: 10px;
+            margin: 4px 8px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .top-header {
+            height: var(--header-height);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--secondary-color);
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 10px 16px;
+            width: 400px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .search-bar:focus-within {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-bar i {
+            color: var(--text-light);
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        .search-bar input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            font-size: 15px;
+            color: var(--text-color);
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-actions button:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+            background-color: var(--primary-color);
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-description {
+            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 40px 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-title a {
+            font-size: 14px;
+            font-weight: normal;
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        /* Page Hero Layout */
+        .page-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+            gap: 32px;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .hero-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .hero-subtitle {
+            color: var(--text-light);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .illustration-card {
+            background: radial-gradient(circle at top left, var(--accent-soft), transparent 60%);
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .illustration-card img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Notebook Grid */
+        .notebook-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .notebook-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .notebook-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            border-color: var(--accent-color);
+        }
+
+        .notebook-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 20px;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+            color: white;
+        }
+
+        .notebook-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .notebook-meta {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .notebook-description {
+            font-size: 14px;
+            color: var(--text-color);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .recent-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .create-card {
+            background-color: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 180px;
+        }
+
+        .create-card:hover {
+            border-color: var(--accent-color);
+            background-color: rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .create-card i {
+            font-size: 32px;
+            margin-bottom: 16px;
+            color: var(--accent-color);
+        }
+
+        .create-card span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .untitled-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .untitled-meta {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        /* Page Content */
+        .page-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 32px;
+        }
+
+        .comment {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .comment:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-left: 8px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-left: 42px;
+        }
+
+        .comment-input {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .comment-input input {
+            flex: 1;
+            background-color: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .comment-input input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        /* Page Overview */
+        .page-overview {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .overview-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .overview-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .overview-label {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .overview-value {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Task List Styles */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .task-item {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .task-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-checkbox.checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .task-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .task-meta {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Goals Progress */
+        .goals-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .goal-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .goal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .goal-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .goal-progress {
+            height: 8px;
+            background-color: var(--secondary-color);
+            border-radius: 4px;
+            margin: 16px 0;
+            overflow: hidden;
+        }
+
+        .goal-progress-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-light));
+        }
+
+        .goal-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Articles Grid */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .article-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .article-category {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: rgba(99, 102, 241, 0.2);
+            color: var(--accent-color);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .article-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .article-meta {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .article-excerpt {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* Illustration Placeholders */
+        .illustration-placeholder {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border-radius: 8px;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-menu-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+        }
+
+        /* Overlay for mobile sidebar */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .notebook-grid, .recent-section, .goals-container, .articles-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+            
+            .search-bar {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                z-index: 1000;
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+            }
+            
+            .sidebar.collapsed {
+                width: 0;
+                overflow: hidden;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .notebook-grid, .recent-section, .goals-container, .articles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .page-title {
+                font-size: 28px;
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .sidebar-overlay {
+                display: block;
+            }
+
+            /* Mobile hero layout */
+            .page-hero {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-bar {
+                width: 150px;
+            }
+            
+            .top-header {
+                padding: 0 16px;
+            }
+            
+            .content-area {
+                padding: 16px;
+            }
+            
+            .header-left {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-brain logo-icon"></i>
+                <span>TRASKK</span>
+            </div>
+            <button class="toggle-sidebar" id="toggleSidebar" title="Toggle Sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <div class="sidebar-item active" data-page="home">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </div>
+                <div class="sidebar-item" data-page="inbox">
+                    <i class="fas fa-inbox"></i>
+                    <span>Inbox</span>
+                </div>
+                <div class="sidebar-item" data-page="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Forecasts</h3>
+                <div class="sidebar-item" data-page="articles">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Articles</span>
+                </div>
+                <div class="sidebar-item" data-page="designs">
+                    <i class="fas fa-palette"></i>
+                    <span>Designs</span>
+                </div>
+                <div class="sidebar-item" data-page="volunteering">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>Volunteering</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Personal</h3>
+                <div class="sidebar-item" data-page="reading">
+                    <i class="fas fa-book"></i>
+                    <span>Reading List</span>
+                </div>
+                <div class="sidebar-item" data-page="tasks">
+                    <i class="fas fa-tasks"></i>
+                    <span>Tasks</span>
+                </div>
+                <div class="sidebar-item" data-page="travel">
+                    <i class="fas fa-plane"></i>
+                    <span>Travel plans 2025</span>
+                </div>
+                <div class="sidebar-item" data-page="goals">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Goals</span>
+                </div>
+                <!-- Added Comments to sidebar -->
+                <div class="sidebar-item" data-page="comments">
+                    <i class="fas fa-comments"></i>
+                    <span>Comments</span>
+                </div>
+                <!-- Added Page Overview to sidebar -->
+                <div class="sidebar-item" data-page="overview">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Page Overview</span>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Settings</h3>
+                <div class="sidebar-item" data-page="help">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Help & support</span>
+                </div>
+                <div class="sidebar-item" data-page="trash">
+                    <i class="fas fa-trash"></i>
+                    <span>Trash</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-header">
+            <div class="header-left">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" title="Open Sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search tasks, tracks, or sources...">
+                </div>
+            </div>
+            <div class="user-actions">
+                <button title="Help"><i class="fas fa-question-circle"></i></button>
+                <button title="Settings"><i class="fas fa-cog"></i></button>
+                <button title="Profile"><i class="fas fa-user-circle"></i></button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Home Page -->
+            <div class="page-content active" id="home-page">
+                <div class="page-header">
+                    <h1 class="page-title">Recent Tracks</h1>
+                    <p class="page-description">Your recently created tracks and tasks</p>
+                </div>
+
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">AI-Powered Tracking Workspace</h2>
+                        <p class="hero-subtitle">Organize your projects, track progress, and achieve goals with intelligent assistance. Create custom tracks for any purpose.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [AI Tracking Workspace Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-section">
+                    <div class="create-card">
+                        <i class="fas fa-plus"></i>
+                        <span>Create new Track</span>
+                    </div>
+                    <div class="untitled-card">
+                        <div>
+                            <h3 class="notebook-title">Untitled track</h3>
+                            <p class="notebook-meta">Created just now</p>
+                        </div>
+                        <div class="untitled-meta">0 sources</div>
+                    </div>
+                </div>
+
+                <h2 class="section-title">
+                    Featured Tracks
+                    <a href="#">See all</a>
+                </h2>
+
+                <div class="notebook-grid">
+                    <div class="notebook-card">
+                        <div class="notebook-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3 class="notebook-title">Business</h3>
+                        <p class="notebook-meta">18 Apr 2025 - 168 sources</p>
+                        <p class="notebook-description">Earnings reports for top 50 corporations</p>
+                    </div>
+                    <div class="notebook-card">
+                        <div class="notebook-icon">
+                            <i class="fas fa-theater-masks"></i>
+                        </div>
+                        <h3 class="notebook-title">Arts and Culture</h3>
+                        <p class="notebook-meta">26 Apr 2025 - 45 sources</p>
+                        <p class="notebook-description">William Shakespeare: The complete plays</p>
+                    </div>
+                    <div class="notebook-card">
+                        <div class="notebook-icon">
+                            <i class="fas fa-globe-americas"></i>
+                        </div>
+                        <h3 class="notebook-title">Our World in Data</h3>
+                        <p class="notebook-meta">15 Apr 2025 - 24 sources</p>
+                        <p class="notebook-description">Trends in health, wealth and happiness</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Page -->
+            <div class="page-content" id="comments-page">
+                <div class="page-header">
+                    <h1 class="page-title">Comments</h1>
+                    <p class="page-description">Manage all your comments and discussions</p>
+                </div>
+
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Collaborate and discuss</h2>
+                        <p class="hero-subtitle">Share feedback, ask questions, and collaborate with your team. Keep all discussions organized in one place.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Comments Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="comments-section">
+                    <h3 class="section-title">Recent Comments</h3>
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-avatar">DL</div>
+                            <div class="comment-author">David Lee</div>
+                            <div class="comment-time">2 hours ago</div>
+                        </div>
+                        <div class="comment-text">
+                            Great outline! Are you considering integrating AI for task prioritization?
+                        </div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-avatar">AJ</div>
+                            <div class="comment-author">Alex Johnson</div>
+                            <div class="comment-time">1 day ago</div>
+                        </div>
+                        <div class="comment-text">
+                            This is a solid plan! I love how the tasks are broken down. Looking forward to seeing the final app!
+                        </div>
+                    </div>
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-avatar">PS</div>
+                            <div class="comment-author">Priya Sharma</div>
+                            <div class="comment-time">2 days ago</div>
+                        </div>
+                        <div class="comment-text">
+                            Don't forget to add accessibility features in the design phase. Inclusivity matters!
+                        </div>
+                    </div>
+                    <div class="comment-input">
+                        <input type="text" placeholder="Write a comment...">
+                    </div>
+                </div>
+
+                <div class="create-card" style="margin-top: 24px; height: auto; flex-direction: row; justify-content: flex-start; text-align: left;">
+                    <i class="fas fa-plus" style="margin-bottom: 0; margin-right: 12px;"></i>
+                    <span>Start new discussion</span>
+                </div>
+            </div>
+
+            <!-- Page Overview Page -->
+            <div class="page-content" id="overview-page">
+                <div class="page-header">
+                    <h1 class="page-title">Page Overview</h1>
+                    <p class="page-description">Detailed analytics and information about your pages</p>
+                </div>
+
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Track your progress</h2>
+                        <p class="hero-subtitle">Monitor engagement, track performance, and understand how your content is being used across all your pages.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Analytics Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-overview">
+                    <h3 class="section-title">Current Page Statistics</h3>
+                    <div class="overview-item">
+                        <span class="overview-label">Created by</span>
+                        <span class="overview-value">June Doe</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Created at</span>
+                        <span class="overview-value">3 Jan, 2025</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Last edited</span>
+                        <span class="overview-value">Just now</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Word count</span>
+                        <span class="overview-value">1,247</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Reading time</span>
+                        <span class="overview-value">6 min</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Access</span>
+                        <span class="overview-value">Shared with 12 users</span>
+                    </div>
+                    <div class="overview-item">
+                        <span class="overview-label">Views</span>
+                        <span class="overview-value">245</span>
+                    </div>
+                </div>
+
+                <div class="goals-container" style="margin-top: 32px;">
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div class="goal-title">Page Engagement</div>
+                            <i class="fas fa-chart-line" style="color: var(--success-color);"></i>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar" style="width: 78%"></div>
+                        </div>
+                        <div class="goal-stats">
+                            <span>78% engagement</span>
+                            <span>189/245 views</span>
+                        </div>
+                    </div>
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div class="goal-title">Collaboration</div>
+                            <i class="fas fa-users" style="color: var(--accent-color);"></i>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar" style="width: 45%"></div>
+                        </div>
+                        <div class="goal-stats">
+                            <span>45% active</span>
+                            <span>5/12 users</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Page -->
+            <div class="page-content" id="tasks-page">
+                <div class="page-header">
+                    <h1 class="page-title">Tasks</h1>
+                    <p class="page-description">Manage your tasks and to-do items</p>
+                </div>
+
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Stay on top of your tasks</h2>
+                        <p class="hero-subtitle">Prioritize, schedule, and track everything in one place. Break down complex projects into manageable steps with AI assistance.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Task Management Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="create-card" style="height: auto; flex-direction: row; justify-content: flex-start; text-align: left; margin-bottom: 24px;">
+                    <i class="fas fa-plus" style="margin-bottom: 0; margin-right: 12px;"></i>
+                    <span>Add new task</span>
+                </div>
+
+                <div class="task-list">
+                    <div class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-title">Complete project proposal</div>
+                            <div class="task-meta">Due tomorrow • Work</div>
+                        </div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-checkbox checked"></div>
+                        <div class="task-content">
+                            <div class="task-title">Review design mockups</div>
+                            <div class="task-meta">Completed • Design</div>
+                        </div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-title">Schedule team meeting</div>
+                            <div class="task-meta">Due in 3 days • Work</div>
+                        </div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-checkbox"></div>
+                        <div class="task-content">
+                            <div class="task-title">Research AI integration options</div>
+                            <div class="task-meta">Due next week • Research</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goals Page -->
+            <div class="page-content" id="goals-page">
+                <div class="page-header">
+                    <h1 class="page-title">Goals</h1>
+                    <p class="page-description">Track your personal and professional goals</p>
+                </div>
+
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Achieve your ambitions</h2>
+                        <p class="hero-subtitle">Set meaningful goals, track your progress, and celebrate your achievements. Break down big dreams into actionable steps.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Goal Setting Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="goals-container">
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div class="goal-title">Learn Spanish</div>
+                            <i class="fas fa-language" style="color: var(--accent-color);"></i>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar" style="width: 30%"></div>
+                        </div>
+                        <div class="goal-stats">
+                            <span>30% complete</span>
+                            <span>12/40 lessons</span>
+                        </div>
+                    </div>
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div class="goal-title">Read 12 books this year</div>
+                            <i class="fas fa-book" style="color: var(--accent-color);"></i>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar" style="width: 58%"></div>
+                        </div>
+                        <div class="goal-stats">
+                            <span>58% complete</span>
+                            <span>7/12 books</span>
+                        </div>
+                    </div>
+                    <div class="goal-card">
+                        <div class="goal-header">
+                            <div class="goal-title">Save $10,000</div>
+                            <i class="fas fa-piggy-bank" style="color: var(--accent-color);"></i>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="goal-progress-bar" style="width: 75%"></div>
+                        </div>
+                        <div class="goal-stats">
+                            <span>75% complete</span>
+                            <span>$7,500/$10,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Articles Page -->
+            <div class="page-content" id="articles-page">
+                <div class="page-header">
+                    <h1 class="page-title">Articles</h1>
+                    <p class="page-description">Your saved articles and reading materials</p>
+                </div>
+
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Expand your knowledge</h2>
+                        <p class="hero-subtitle">Curate and organize articles that matter to you. Save insights, highlight key points, and build your personal knowledge base.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Reading Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="articles-grid">
+                    <div class="article-card">
+                        <div class="article-category">Technology</div>
+                        <h3 class="article-title">The Future of AI in Everyday Applications</h3>
+                        <div class="article-meta">5 min read • Saved 2 days ago</div>
+                        <p class="article-excerpt">Exploring how artificial intelligence is transforming our daily lives through smart applications and predictive technologies.</p>
+                    </div>
+                    <div class="article-card">
+                        <div class="article-category">Productivity</div>
+                        <h3 class="article-title">Maximizing Your Workflow with Digital Tools</h3>
+                        <div class="article-meta">7 min read • Saved 1 week ago</div>
+                        <p class="article-excerpt">A comprehensive guide to optimizing your daily workflow using the latest digital productivity tools and techniques.</p>
+                    </div>
+                    <div class="article-card">
+                        <div class="article-category">Design</div>
+                        <h3 class="article-title">Minimalist Design Principles for Modern Interfaces</h3>
+                        <div class="article-meta">4 min read • Saved 3 days ago</div>
+                        <p class="article-excerpt">Understanding the core principles of minimalist design and how to apply them to create clean, effective user interfaces.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other pages with hero sections -->
+            <div class="page-content" id="inbox-page">
+                <div class="page-header">
+                    <h1 class="page-title">Inbox</h1>
+                    <p class="page-description">Your recent messages and notifications</p>
+                </div>
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Stay connected</h2>
+                        <p class="hero-subtitle">Manage your messages, collaborate with teammates, and keep your communication organized in one central place.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Inbox Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>Inbox content would go here...</p>
+            </div>
+
+            <div class="page-content" id="notifications-page">
+                <div class="page-header">
+                    <h1 class="page-title">Notifications</h1>
+                    <p class="page-description">Stay updated with recent activities</p>
+                </div>
+                <div class="page-hero">
+                    <div class="hero-text">
+                        <h2 class="hero-title">Never miss an update</h2>
+                        <p class="hero-subtitle">Stay informed about important changes, mentions, and activities across all your tracks and projects.</p>
+                    </div>
+                    <div class="hero-illustration">
+                        <div class="illustration-card">
+                            <div class="illustration-placeholder">
+                                [Notifications Illustration]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>Notifications content would go here...</p>
+            </div>
+
+            <!-- Remaining pages... -->
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const icon = toggleSidebarBtn.querySelector('i');
+
+        function toggleSidebar() {
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            
+            if (isCollapsed) {
+                // Open sidebar
+                sidebar.classList.remove('collapsed');
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+                
+                // Show overlay on mobile
+                if (window.innerWidth <= 768) {
+                    sidebarOverlay.classList.add('active');
+                }
+            } else {
+                // Close sidebar
+                sidebar.classList.add('collapsed');
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+                
+                // Hide overlay on mobile
+                if (window.innerWidth <= 768) {
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+        }
+
+        // Toggle sidebar on button click
+        toggleSidebarBtn.addEventListener('click', toggleSidebar);
+        mobileMenuBtn.addEventListener('click', toggleSidebar);
+
+        // Close sidebar when clicking overlay
+        sidebarOverlay.addEventListener('click', function() {
+            sidebar.classList.add('collapsed');
+            icon.classList.remove('fa-chevron-left');
+            icon.classList.add('fa-chevron-right');
+            sidebarOverlay.classList.remove('active');
+        });
+
+        // Page navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.sidebar-item').forEach(i => {
+                    i.classList.remove('active');
+                });
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Get the page to show
+                const pageId = this.getAttribute('data-page');
+                
+                // Hide all pages
+                document.querySelectorAll('.page-content').forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // Show the selected page
+                if (pageId) {
+                    const targetPage = document.getElementById(`${pageId}-page`);
+                    if (targetPage) {
+                        targetPage.classList.add('active');
+                    } else {
+                        // Default to home if page not found
+                        document.getElementById('home-page').classList.add('active');
+                    }
+                }
+                
+                // On mobile, close sidebar after selection
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        sidebar.classList.add('collapsed');
+                        icon.classList.remove('fa-chevron-left');
+                        icon.classList.add('fa-chevron-right');
+                        sidebarOverlay.classList.remove('active');
+                    }, 200);
+                }
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('collapsed');
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+                sidebarOverlay.classList.remove('active');
+            }
+        });
+
+        // Notebook card click handler
+        document.querySelectorAll('.notebook-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const title = this.querySelector('.notebook-title').textContent;
+                alert(`Opening notebook: ${title}`);
+            });
+        });
+
+        // Create new notebook
+        document.querySelectorAll('.create-card').forEach(card => {
+            card.addEventListener('click', function() {
+                alert('Creating a new item...');
+            });
+        });
+
+        // Task checkbox toggle
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function() {
+                this.classList.toggle('checked');
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + B to toggle sidebar
+            if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                e.preventDefault();
+                toggleSidebar();
+            }
+            
+            // Escape to close sidebar on mobile
+            if (e.key === 'Escape' && window.innerWidth <= 768) {
+                if (!sidebar.classList.contains('collapsed')) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // Prevent body scroll when sidebar is open on mobile
+        sidebarOverlay.addEventListener('scroll', function(e) {
+            e.preventDefault();
+        });
+
+        // Initialize sidebar state
+        function initializeSidebar() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                sidebarOverlay.classList.remove('active');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeSidebar);
+    </script>
+</body>
+</html>
